@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Q&A</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a18cd1, #fbc2eb);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      color: #fff;
+    }
+
+    h1 { text-align: center; font-size: 1.8rem; margin-bottom: 25px; text-shadow: 1px 1px 5px rgba(0,0,0,0.4); }
+
+    input[type="text"], textarea, input[type="file"], select {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      background: rgba(255,255,255,0.3);
+      color: #000;
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #f6d365, #fda085);
+      color: #fff;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    ul { padding-left: 20px; margin-bottom: 15px; font-size: 0.9rem; }
+    li { list-style-type: disc; }
+
+    .option-group { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <h1>Посоветуйтесь с автором</h1>
+
+    <div class="option-group">
+    
+    </div>
+      <input type="file" id="fileUpload">
+  <div id="uploadStatus"></div> 
+  <button onclick="uploadFile()">Загрузить</button>
+  <input type="text" id="questionInput" placeholder="Введите запрос..." />
+    <button onclick="askQuestion()">Ask</button>
+    <div id="askStatus"></div>
+  </div>
+
+  <script>
+  const uploadStatus = document.getElementById("uploadStatus");
+const askStatus = document.getElementById("askStatus");
+
+async function uploadFile() {
+  const fileInput = document.getElementById("fileUpload");
+  if (!fileInput.files.length) {
+    uploadStatus.textContent = "Выберите файл!";
+    return;
+  }
+
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append("file", file);
+
+  uploadStatus.textContent = "Загрузка... 0%";
+  let uploaded = 0;
+  const chunkSize = file.size / 100;
+
+  // Fake progress timer for demo
+  const timer = setInterval(() => {
+    uploaded += 1;
+    uploadStatus.textContent = `Загрузка... ${uploaded}%`;
+    if (uploaded >= 100) clearInterval(timer);
+  }, 20); // adjust speed
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/upload", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    uploadStatus.textContent = "Файл успешно загружен!";
+  } catch (err) {
+    console.error(err);
+    uploadStatus.textContent = "Ошибка при загрузке файла.";
+  }
+}
+ async function askQuestion() {
+      const question = document.getElementById("questionInput").value;
+      if (!question) {
+    askStatus.textContent = "Введите вопрос!";
+    return;
+  }
+
+  askStatus.textContent = "Обработка запроса..."; // show spinner/message
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question })
+    });
+
+    const data = await res.json();
+    // save to localStorage for chat
+    localStorage.setItem("chatData", JSON.stringify(data));
+
+    askStatus.textContent = "Перенаправление в чат...";
+    window.location.href = "/chat";
+  } catch (err) {
+    console.error(err);
+    askStatus.textContent = "Ошибка при запросе.";
+  }
+      }
+    
+  </script>
+
+</body>
+</html>
