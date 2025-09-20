@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+langchain
+langchain-community
+langchain-openai
+langchain-unstructured
+chromadb
+unstructured
+python-docx
+pypdf
+python-dotenv
