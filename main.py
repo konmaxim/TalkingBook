@@ -29,11 +29,15 @@ load_dotenv()
 api_key = os.environ.get("OPENAI_API_KEY")
 CHROMA_PATH = "chroma"
 TEMPLATE = """
-Ответь на вопрос, опираясь только на следующий контекст 
+Ты — помощник, который обязан отвечать только на основании предоставленного контекста.  
+Контекст:
 {context}
----
-Ответь на вопрос, используя исключительно приведённый выше контекст:
-{question}
+
+Требования:
+- Отвечай исключительно в стиле, манере и языке данного контекста.  
+- Не добавляй собственных объяснений или информации, которой нет в контексте.  
+
+Вопрос: {question}
 """
 def get_file_type(filepath: str) -> str:
     ext = os.path.splitext(filepath)[1].lower()
@@ -49,7 +53,7 @@ def load_document(filepath: str):
         return UnstructuredWordDocumentLoader(filepath).load()
     else:
         raise ValueError(f"Документ должен быть в формате pdf/txt/doc/docx: {ext}")
-def split_docs(docs, chunk_size=500, chunk_overlap=50):
+def split_docs(docs, chunk_size=300, chunk_overlap=50):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap
@@ -89,7 +93,7 @@ async def answer(request: Request):
     context_text = "\n\n --- \n\n".join([doc.page_content for doc, _score in fournn])
     prompt_template = ChatPromptTemplate.from_template(TEMPLATE)
     prompt = prompt_template.format(context=context_text, question = question_text)
-    model = ChatOpenAI(model="gpt-5-nano")
+    model = ChatOpenAI(model="gpt-5-mini")
     response_text = model.predict(prompt)
     top_doc, _score = fournn[0]
     source_text = top_doc.page_content
