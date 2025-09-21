@@ -51,7 +51,7 @@ def load_document(filepath: str):
     if ext == ".pdf":
         return PyPDFLoader(filepath).load()
     elif ext == ".txt":
-        return TextLoader(filepath).load()
+        return TextLoader(filepath, encoding="utf-8").load()
     elif ext in [".doc", ".docx"]:
         return UnstructuredWordDocumentLoader(filepath).load()
     else:
